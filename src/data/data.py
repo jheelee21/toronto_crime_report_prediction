@@ -5,7 +5,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
-FILE_PATH = './data/toronto_crime_data.csv'
+FILE_PATH = 'toronto_crime_data.csv'
 SEED = 311
 np.random.seed(SEED)
 
@@ -13,9 +13,9 @@ np.random.seed(SEED)
 def _load_csv(path):
     if not os.path.exists(path):
         raise Exception("The specified path {} does not exist.".format(path))
-    
+
     df = pd.read_csv(path)
-    
+
     return df
 
 
@@ -24,10 +24,13 @@ def process_features(df):
     df['Year'] = df['REPORT_DATE'].dt.year
     df['Month'] = df['REPORT_DATE'].dt.month
     df['Day'] = df['REPORT_DATE'].dt.day
-    df['REPORT_DOW_NUM'] = df['REPORT_DOW'].map({
+    weekday_mapping = {
         'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4,
         'Friday': 5, 'Saturday': 6, 'Sunday': 7
-    })
+    }
+    # for some reason DOW strings have spaces in them. remove them
+    df['REPORT_DOW'] = df['REPORT_DOW'].str.strip().str.capitalize()
+    df['REPORT_DOW_NUM'] = df['REPORT_DOW'].map(weekday_mapping)
 
     # drop all rows with missing features
     df = df.dropna()
@@ -36,6 +39,11 @@ def process_features(df):
     # NOT one-hot encoding, but 0...n-1 encoding.
     # suitable Decision Trees/Random Forest/KDE.
     categorical_cols = ['PREMISES_TYPE', 'NBH_DESIGNATION', 'OFFENCE']
+    # convert all values to strings
+    for col in categorical_cols:
+        df[col] = df[col].astype(str)
+
+    # use labelencoder to convert categories/strings into integers
     label_encoders = {}
     for col in categorical_cols:
         le = LabelEncoder()
