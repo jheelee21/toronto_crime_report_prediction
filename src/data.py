@@ -42,25 +42,25 @@ def process_features(df):
     return X, y, label_encoders
 
 
-def load_data(path):
+def load_data():
     # shuffle-n-split
-    df = _load_csv(path)
+    df = _load_csv(FILE_PATH)
     data, labels, label_encoders = process_features(df)
     shuffled_indices = np.random.permutation(len(data))
     data, labels = data[shuffled_indices], labels[shuffled_indices]
 
-    return split_data(data, labels)
+    return _split_data(data, labels)
 
 
-def split_data(data, labels):
+def _split_data(data, labels):
     X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.4)
     X_val, X_test, y_val, y_test = train_test_split(X_test, y_test, test_size=0.5)
 
     return X_train, y_train, X_val, y_val, X_test, y_test
 
 
-if __name__ == '__main__':
-    X_train, y_train, X_val, y_val, X_test, y_test = load_data(FILE_PATH)
-    print(X_train.shape)
-    print(X_test.shape)
-    print(X_val.shape)
+# if __name__ == '__main__':
+#     X_train, y_train, X_val, y_val, X_test, y_test = load_data()
+#     print(X_train.shape)
+#     print(X_test.shape)
+#     print(X_val.shape)
