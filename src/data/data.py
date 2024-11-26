@@ -45,7 +45,7 @@ def process_features(df):
     features = [
         'REPORT_DOY', 'REPORT_HOUR', 'PREMISES_TYPE', 'HOOD_158',
         'AVG_AGE', 'POPULATION', 'INCOME', 'EMPLOYMENT_RATE',
-        'Year', 'Month', 'Day', 'REPORT_DOW_NUM', 'IsWeekend'
+        'Year', 'Month', 'Day', 'REPORT_DOW_NUM'
     ]
     target = 'OFFENCE'
 
