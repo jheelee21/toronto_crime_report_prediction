@@ -1,16 +1,19 @@
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import LabelEncoder
+import os
+
+
+os.chdir('./data')
 
 MCI_PATH = './raw/major_crime_indicators.csv'
 NEIGHBOURHOOD_PATH = './raw/neighbourhood_profiles.csv'
 OUTPUT_PATH = 'toronto_crime_data.csv'
 
+
 def _load_mci_df(path):
     df = pd.read_csv(path)
     df = df[(df['REPORT_YEAR'] >= 2021) & (df['REPORT_YEAR'] <= 2023) & \
-                # empty entries for HOOD_158
-                (df['HOOD_158'] != 'NSA')]
+            (df['HOOD_158'] != 'NSA')]
     
     df = df[['REPORT_YEAR', 'REPORT_MONTH', 'REPORT_DAY',
              'REPORT_DOY', 'REPORT_DOW', 'REPORT_HOUR', 
@@ -60,6 +63,12 @@ def _load_neighbourhood_df(path):
     df['NBH_DESIGNATION'] = df['NBH_DESIGNATION'].apply(lambda x: 2 if x == 'Emerging Neighbourhood' else x)
 
     df = df.dropna()
+
+    df['HOOD_158'] = df['HOOD_158'].astype(int)
+    df['AVG_AGE'] = df['AVG_AGE'].astype(float)
+    df['POPULATION'] = df['POPULATION'].astype(int)
+    df['INCOME'] = df['INCOME'].astype(float)
+    df['EMPLOYMENT_RATE'] = df['EMPLOYMENT_RATE'].astype(float)
 
     return df
 

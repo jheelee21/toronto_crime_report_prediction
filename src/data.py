@@ -2,6 +2,7 @@ import os
 import csv
 import numpy as np
 import pandas as pd
+import torch
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
@@ -9,6 +10,12 @@ FILE_PATH = './data/toronto_crime_data.csv'
 SEED = 311
 np.random.seed(SEED)
 
+FEATURES = ['REPORT_YEAR', 'REPORT_MONTH', 'REPORT_DAY', 'REPORT_DOW',
+            'REPORT_DOY', 'REPORT_HOUR', 'PREMISES_TYPE', 
+            'HOOD_158', 'LONGITUDE', 'LATITUDE',
+            'AVG_AGE', 'POPULATION', 'INCOME', 'EMPLOYMENT_RATE']
+TARGET = 'OFFENCE'
+TARGET_DIM = 9
 
 def _load_csv(path):
     if not os.path.exists(path):
@@ -28,16 +35,8 @@ def process_features(df):
         df[col] = le.fit_transform(df[col])
         label_encoders[col] = le
 
-    features = [
-        'REPORT_YEAR', 'REPORT_MONTH', 'REPORT_DAY', 'REPORT_DOW',
-        'REPORT_DOY', 'REPORT_HOUR', 'PREMISES_TYPE', 
-        'HOOD_158', 'LONGITUDE', 'LATITUDE',
-        'AVG_AGE', 'POPULATION', 'INCOME', 'EMPLOYMENT_RATE'
-    ]
-    target = 'OFFENCE'
-
-    X = df[features].to_numpy()
-    y = df[target].to_numpy()
+    X = df[FEATURES].to_numpy()
+    y = df[TARGET].to_numpy()
 
     return X, y, label_encoders
 
@@ -58,9 +57,13 @@ def _split_data(data, labels):
 
     return X_train, y_train, X_val, y_val, X_test, y_test
 
+def np_to_tensor(data:list[np.array]):
+    # tensors = [torch.from_numpy(d) for d in data]
+    return [torch.from_numpy(d.astype(np.float64)) for d in data]
 
-# if __name__ == '__main__':
-#     X_train, y_train, X_val, y_val, X_test, y_test = load_data()
-#     print(X_train.shape)
-#     print(X_test.shape)
-#     print(X_val.shape)
+if __name__ == '__main__':
+    X_train, y_train, X_val, y_val, X_test, y_test = load_data()
+    print(X_train.shape)
+    print(y_train.shape)
+    print(X_val.shape)
+    print(np.unique(y_test))
