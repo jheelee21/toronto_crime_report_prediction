@@ -2,9 +2,9 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 
-MCI_PATH = 'data/raw/major_crime_indicators.csv'
-NEIGHBOURHOOD_PATH = 'data/raw/neighbourhood_profiles.csv'
-OUTPUT_PATH = 'data/toronto_crime_data.csv'
+MCI_PATH = './raw/major_crime_indicators.csv'
+NEIGHBOURHOOD_PATH = './raw/neighbourhood_profiles.csv'
+OUTPUT_PATH = 'toronto_crime_data.csv'
 
 def _load_mci_df(path):
     df = pd.read_csv(path)
