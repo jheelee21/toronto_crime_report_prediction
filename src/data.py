@@ -15,13 +15,13 @@ FEATURES = ['REPORT_YEAR', 'REPORT_MONTH', 'REPORT_DAY', 'REPORT_DOW',
             'HOOD_158', 'LONGITUDE', 'LATITUDE',
             'AVG_AGE', 'POPULATION', 'INCOME', 'EMPLOYMENT_RATE']
 TARGET = 'OFFENCE'
-TARGET_DIM = 9
+TARGET_DIM = 2
 
 def _load_csv(path):
     if not os.path.exists(path):
         raise Exception("The specified path {} does not exist.".format(path))
 
-    df = pd.read_csv(path)
+    df = pd.read_csv(path, low_memory=False)
     return df
 
 
@@ -58,7 +58,6 @@ def _split_data(data, labels):
     return X_train, y_train, X_val, y_val, X_test, y_test
 
 def np_to_tensor(data:list[np.array]):
-    # tensors = [torch.from_numpy(d) for d in data]
     return [torch.from_numpy(d.astype(np.float64)) for d in data]
 
 if __name__ == '__main__':

@@ -1,9 +1,5 @@
 import pandas as pd
 import numpy as np
-import os
-
-
-os.chdir('./data')
 
 MCI_PATH = './raw/major_crime_indicators.csv'
 NEIGHBOURHOOD_PATH = './raw/neighbourhood_profiles.csv'
@@ -45,6 +41,9 @@ def _load_mci_df(path):
     for col in ['PREMISES_TYPE', 'OFFENCE']:
         df[col] = df[col].astype(str)
 
+    for col in ['LONGITUDE', 'LATITUDE']:
+        df[col] = df[col].astype(float)
+
     return df
 
 
@@ -64,61 +63,32 @@ def _load_neighbourhood_df(path):
 
     df = df.dropna()
 
-    df['HOOD_158'] = df['HOOD_158'].astype(int)
-    df['AVG_AGE'] = df['AVG_AGE'].astype(float)
-    df['POPULATION'] = df['POPULATION'].astype(int)
-    df['INCOME'] = df['INCOME'].astype(float)
-    df['EMPLOYMENT_RATE'] = df['EMPLOYMENT_RATE'].astype(float)
+    for col in ['AVG_AGE', 'INCOME', 'EMPLOYMENT_RATE']:
+        df[col] = df[col].astype(float)
+
+    for col in ['HOOD_158', 'POPULATION']:
+        df[col] = df[col].astype(int)
 
     return df
 
 
 def _categorize_offence(offence):
-    if offence in [
-        'Aggravated Assault', 'Aggravated Assault Avails Pros', 'Assault', 
-        'Assault - Force/Thrt/Impede', 'Assault - Resist/Prevent Seiz', 
-        'Assault Bodily Harm', 'Assault With Weapon', 
-        'Crim Negligence Bodily Harm', 'Unlawfully Causing Bodily Harm'
-    ]:
-        return 'Assault and Violence Against Individuals'
-    elif offence in [
-        'Aggravated Aslt Peace Officer', 'Disarming Peace/Public Officer',
-        'Assault Peace Officer', 'Assault Peace Officer Wpn/Cbh'
-    ]:
-        return 'Violence Against Authority Figures'
-    elif offence in [
-        'Air Gun Or Pistol: Bodily Harm', 'Pointing A Firearm', 
+    high_risk = [
+        'Administering Noxious Thing', 'Aggravated Aslt Peace Officer', 'Aggravated Assault',
+        'Aggravated Assault Avails Pros', 'Air Gun Or Pistol: Bodily Harm', 'Assault Bodily Harm',
+        'Assault Peace Officer', 'Assault Peace Officer Wpn/Cbh', 'Assault With Weapon',
+        'Crim Negligence Bodily Harm', 'Disarming Peace/Public Officer', 
         'Discharge Firearm - Recklessly', 'Discharge Firearm With Intent', 
-        'Use Firearm / Immit Commit Off'
-    ]:
-        return 'Firearms and Dangerous Weapons'
-    elif offence in [
-        'Robbery - Armoured Car', 'Robbery - Atm', 'Robbery - Business', 
-        'Robbery - Delivery Person', 'Robbery - Financial Institute', 
-        'Robbery - Home Invasion', 'Robbery - Mugging', 'Robbery - Other', 
-        'Robbery - Purse Snatch', 'Robbery - Swarming', 'Robbery - Taxi', 
-        'Robbery - Vehicle Jacking', 'Robbery To Steal Firearm', 
-        'Robbery With Weapon'
-    ]:
-        return 'Robbery'
-    elif offence in [
-        'B&E', 'B&E - To Steal Firearm', 'B&E Out', "B&E W'Intent"
-    ]:
-        return 'Breaking and Entering'
-    elif offence in [
-        'Theft From Mail / Bag / Key', 'Theft From Motor Vehicle Over', 
-        'Theft Of Motor Vehicle', 'Theft Of Utilities Over', 'Theft Over', 
-        'Theft Over - Bicycle', 'Theft Over - Distraction', 'Theft Over - Shoplifting',
-        'Theft - Misapprop Funds Over'
-    ]:
-        return 'Property Theft'
-    elif offence in [
-        'Administering Noxious Thing', 'Set/Place Trap/Intend Death/Bh', 
-        'Traps Likely Cause Bodily Harm', 'Hoax Terrorism Causing Bodily'
-    ]:
-        return 'Crimes Causing Bodily Harm or Death'
-    elif offence == 'Unlawfully In Dwelling-House':
-        return 'Home Invasion and Trespassing'
+        'Hoax Terrorism Causing Bodily', 'Pointing A Firearm', 
+        'Robbery - Armoured Car', 'Robbery - Home Invasion', 'Robbery With Weapon',
+        'Robbery - Vehicle Jacking', 'Set/Place Trap/Intend Death/Bh', 
+        'Traps Likely Cause Bodily Harm', 'Use Firearm / Immit Commit Off'
+    ]
+    
+    if offence in high_risk:
+        return 'High-risk'
+    else:
+        return 'Low-risk'
 
 
 def _save_df(mci_path, neighbourhood_path, output_path):
