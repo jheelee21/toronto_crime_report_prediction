@@ -19,21 +19,16 @@ class BNN(nn.Module):
     def __init__(self, input_dim, output_dim, 
                  lr=0.01, prior_mu=0.0, prior_sigma=0.1):
         super(BNN, self).__init__()
-        self.bnn_linear1 = bnn.BayesLinear(in_features=input_dim, out_features=32, prior_mu=prior_mu,
-                                           prior_sigma=prior_sigma)
-        self.bnn_linear2 = bnn.BayesLinear(in_features=32, out_features=16, prior_mu=prior_mu, prior_sigma=prior_sigma)
-        self.bnn_linear3 = bnn.BayesLinear(in_features=16, out_features=output_dim, prior_mu=prior_mu,
-                                           prior_sigma=prior_sigma)
-        self.relu = nn.ReLU()
-        self.sigmoid = nn.Sigmoid()
-
         self.model = nn.Sequential(
-            self.bnn_linear1,
-            self.relu,
-            self.bnn_linear2,
-            self.relu,
-            self.bnn_linear3,
-            self.sigmoid
+            bnn.BayesLinear(in_features=input_dim, out_features=32, prior_mu=prior_mu,
+                            prior_sigma=prior_sigma),
+            nn.ReLU(),
+            bnn.BayesLinear(in_features=32, out_features=16, 
+                            prior_mu=prior_mu, prior_sigma=prior_sigma),
+            nn.ReLU(),
+            bnn.BayesLinear(in_features=16, out_features=output_dim, prior_mu=prior_mu,
+                            prior_sigma=prior_sigma),
+            nn.Sigmoid()
         )
         
         self.optimizer = torch.optim.Adam(self.parameters(), lr=lr)
@@ -48,23 +43,16 @@ class BatchNormBNN(nn.Module):
     def __init__(self, input_dim, output_dim, 
                  lr=0.01, prior_mu=0.0, prior_sigma=0.1):
         super(BatchNormBNN, self).__init__()
-        self.bnn_linear1 = bnn.BayesLinear(in_features=input_dim, out_features=32, prior_mu=prior_mu,
-                                           prior_sigma=prior_sigma)
-        self.bnn_norm1 = nn.BatchNorm1d(32)
-        self.bnn_linear2 = bnn.BayesLinear(in_features=32, out_features=16, prior_mu=prior_mu, prior_sigma=prior_sigma)
-        self.bnn_norm2 = nn.BatchNorm1d(16)
-        self.bnn_linear3 = bnn.BayesLinear(in_features=16, out_features=output_dim, prior_mu=prior_mu,
-                                           prior_sigma=prior_sigma)
-        self.relu = nn.ReLU()
-        self.sigmoid = nn.Sigmoid()
-
         self.model = nn.Sequential(
-            self.bnn_linear1,
-            self.bnn_norm1,
-            self.bnn_linear2,
-            self.bnn_norm2,
-            self.bnn_linear3,
-            self.sigmoid
+            bnn.BayesLinear(in_features=input_dim, out_features=32, 
+                            prior_mu=prior_mu, prior_sigma=prior_sigma),
+            nn.BatchNorm1d(32),
+            bnn.BayesLinear(in_features=32, out_features=16, 
+                            prior_mu=prior_mu, prior_sigma=prior_sigma),
+            nn.BatchNorm1d(16),
+            bnn.BayesLinear(in_features=16, out_features=output_dim, 
+                            prior_mu=prior_mu, prior_sigma=prior_sigma),
+            nn.Sigmoid()
         )
         
         self.optimizer = torch.optim.Adam(self.parameters(), lr=lr)
