@@ -52,6 +52,13 @@ def load_data():
 
     return _split_data(data, labels)
 
+def load_df_data():
+    df = _load_csv(FILE_PATH)
+    data = df[FEATURES]
+    labels = (df[TARGET] == "High-risk").astype(int)
+
+    return _split_data(data, labels)
+
 
 def _split_data(data, labels):
     X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=0.4)
@@ -60,7 +67,7 @@ def _split_data(data, labels):
     return X_train, y_train, X_val, y_val, X_test, y_test
 
 def np_to_tensor(data:list[np.array]):
-    return [torch.from_numpy(d.astype(np.float64)) for d in data]
+    return [torch.from_numpy(d.astype(np.float32)) for d in data]
 
 if __name__ == '__main__':
     X_train, y_train, X_val, y_val, X_test, y_test = load_data()
