@@ -6,7 +6,9 @@ import torch
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
-FILE_PATH = './data/toronto_crime_data.csv'
+# let FILE_PATH to be consistent across different function callers
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FILE_PATH = os.path.join(BASE_DIR, 'data', 'toronto_crime_data.csv')
 SEED = 311
 np.random.seed(SEED)
 
