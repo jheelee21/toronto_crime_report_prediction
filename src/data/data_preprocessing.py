@@ -55,7 +55,7 @@ def _load_neighbourhood_df(path):
                  'Total - Income statistics in 2020 for the population aged 15 years and over in private households - 25% sample data', \
                  'Employment rate']]
     
-    df.columns = ['HOOD_158', 'NBH_DESIGNATION', 'AVG_AGE', 'POPULATION', 'INCOME', 'EMPLOYMENT_RATE']
+    df.columns = ['HOOD_158', 'NBH_DESIGNATION', 'POPULATION', 'AVG_AGE', 'INCOME', 'EMPLOYMENT_RATE']
 
     df['NBH_DESIGNATION'] = df['NBH_DESIGNATION'].apply(lambda x: 0 if x == 'Not an NIA or Emerging Neighbourhood' else x)
     df['NBH_DESIGNATION'] = df['NBH_DESIGNATION'].apply(lambda x: 1 if x == 'Neighbourhood Improvement Area' else x)
