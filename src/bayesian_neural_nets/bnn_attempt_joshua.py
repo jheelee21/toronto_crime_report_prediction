@@ -1,4 +1,4 @@
-from src.data import load_df_data
+from data import load_df_data
 
 import pandas as pd
 from sklearn.preprocessing import StandardScaler, OneHotEncoder

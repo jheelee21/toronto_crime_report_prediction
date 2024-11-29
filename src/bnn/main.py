@@ -1,23 +1,33 @@
-from utils import *
-from models import *
+from .utils import *
+from .models import *
 
 def main():
     X_train, y_train, X_val, y_val, X_test, y_test, preprocessor = load_tensor()
 
-    lr = 0.01
-    batch_size = 256
-    num_epochs = 10
-    prior_sigma = 0.2
-    prior_mu = 0.
+    num_epochs = 50
+    batch_size = 32
+    params = {
+        "input_dim": X_train.shape[1],
+        "output_dim": 1,
+        "prior_sigma": 0.1,
+        "prior_mu": 0.,
+        "lr": 0.05,
+        "kl_weight": 0.01
+    }
+    # params = {
+    #     "input_dim": X_train.shape[1],
+    #     "output_dim": 1,
+    #     "prior_sigma": 0.15,
+    #     "prior_mu": 0.,
+    #     "lr": 0.05,
+    #     "kl_weight": 0.01
+    # }
 
-    input_dim = X_train.shape[1]
-    output_dim = 1
+    model = BNN(**params)    
 
-    # model = BNN(input_dim=input_dim, output_dim=output_dim, 
-    #             prior_sigma=prior_sigma, prior_mu=prior_mu, lr=lr)
-    # model = BatchNormBNN(input_dim=input_dim, output_dim=output_dim)
-    model = BNN(input_dim=input_dim, output_dim=output_dim,
-                       prior_sigma=prior_sigma, prior_mu=prior_mu, lr=lr)
+    # results = optimization(model, X_train, y_train)
+    # for k, v in results.loc[0, 'params'].items():
+    #     model.__setattr__(k, v)
 
     train(model, X_train, y_train, X_val, y_val, num_epochs)
     # batch_train(model, X_train, y_train, X_val, y_val, num_epochs, batch_size)
@@ -39,7 +49,7 @@ def main():
         'EMPLOYMENT_RATE': 80
     }
 
-    infer(model, new_data_all, preprocessor)
+    # infer(model, new_data_all, preprocessor)
 
 if __name__ == '__main__':
     main()

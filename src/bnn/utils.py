@@ -1,9 +1,15 @@
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 from data import *
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, normalize
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
 from torch.utils.data import DataLoader, TensorDataset
+import itertools
+from tqdm import tqdm
+import math
 
 
 def load_tensor():
@@ -97,9 +103,9 @@ def train(model, X_train, y_train, X_val, y_val, num_epochs):
     
         model.train()
     
-        _, train_acc = eval_performance(model, X_train, y_train, "Train")
+        _, train_acc = eval_performance(model, X_train, y_train, "Train", print_val=True)
         train_accuracies.append(train_acc)
-        val_loss, val_acc = eval_performance(model, X_val, y_val, "Validation")
+        val_loss, val_acc = eval_performance(model, X_val, y_val, "Validation", print_val=True)
         val_losses.append(val_loss)
         val_accuracies.append(val_acc)
 
@@ -132,11 +138,11 @@ def batch_train(model, X_train, y_train, X_val, y_val, num_epochs, batch_size):
         
             model.train()
 
-        train_loss, train_acc = eval_performance(model, X_train, y_train, "Train")
+        train_loss, train_acc = eval_performance(model, X_train, y_train, criterion="Train")
         train_losses.append(train_loss)
         train_accuracies.append(train_acc)
 
-        val_loss, val_acc = eval_performance(model, X_val, y_val, "Validation")
+        val_loss, val_acc = eval_performance(model, X_val, y_val, criterion="Validation")
         val_losses.append(val_loss)
         val_accuracies.append(val_acc)
 
@@ -144,16 +150,79 @@ def batch_train(model, X_train, y_train, X_val, y_val, num_epochs, batch_size):
     plot_train_val_acc(range(num_epochs), train_accuracies, val_accuracies)
 
 
-def eval_performance(model, x, y, criterion):
+def eval_performance(model, x, y, dataset, print_val=False):
     model.eval()
     with torch.no_grad():
         outputs = model(x)
         pred = (outputs >= 0.5).float()
         loss = model.criterion(pred, y)
         accuracy = accuracy_score(y, pred)
-        print(f"{criterion} Loss: {loss.item():.4f} | {criterion} Accuracy: {accuracy:.2%}")
+        if print_val:
+            print(f"{dataset} Loss: {loss:.4f} | {dataset} Accuracy: {accuracy:.2%}")
     
     return loss.item(), accuracy
+
+
+def grid_search(model, search_space, x, y, scoring):
+    total = math.prod([len(search_space[k]) for k in search_space.keys()])
+
+    results = pd.DataFrame(columns = ['score', 'params'], index = range(total))
+    
+    keys, values = zip(*search_space.items())
+    i = 0
+    with tqdm(total=total) as pbar:
+        for v in itertools.product(*values):
+            hyperparameters = dict(zip(keys, v))
+
+            loss, acc = fit(model, hyperparameters, x, y)
+            eval_results = acc if scoring == 'accuracy' else loss
+
+            results['score'][i] = eval_results
+            results['params'][i] = hyperparameters
+
+            pbar.update(1)
+            i += 1
+
+        ascending = scoring != 'accuracy'
+        results.sort_values('score', ascending = ascending, inplace = True)
+        results.reset_index(inplace = True)
+    
+    print(f'The best validation score: {results.loc[0, 'score']:.5f}')
+    print(f'The best hyperparameters: {results.loc[0, 'params']}')
+    return results
+
+
+def fit(model, hyperparameters, x, y):
+    for param, value in hyperparameters.items():
+        model.__setattr__(param, value)
+
+    for _ in range(10):
+        outputs = model(x)
+        bce_loss = model.criterion(outputs, y)
+        kl_loss = model.kl_loss(model)
+        total_loss = bce_loss + model.kl_weight * kl_loss
+
+        model.optimizer.zero_grad()
+        total_loss.backward()
+        model.optimizer.step()
+
+        model.train()
+
+    train_loss, train_acc = eval_performance(model, x, y, "Train", print_val=False)
+    return train_loss, train_acc
+
+
+def optimization(model, x, y, scoring='accuracy'):
+    print("Optimizing hyperparameters...")
+    search_space = {
+        "lr": np.arange(0.01, 0.11, 0.02),
+        "prior_sigma": np.arange(0.05, 0.3, 0.05),
+        "prior_mu": np.arange(-0.03, 0.03, 0.01),
+        "kl_weight": np.arange(0.01, 0.5, 0.05)
+    }
+    results = grid_search(model, search_space, x, y, scoring)
+    
+    return results
 
 
 def plot_features(x):
