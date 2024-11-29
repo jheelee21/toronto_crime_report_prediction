@@ -50,44 +50,9 @@ def load_tensor():
     return X_train_tensor, y_train_tensor, X_val_tensor, y_val_tensor, X_test_tensor, y_test_tensor
 
 
-def batch_train(model, X_train, y_train, X_val, y_val, num_epochs, batch_size):
-    train_dl = DataLoader(TensorDataset(X_train, y_train), batch_size=batch_size)
-
-    losses = []
-    val_losses = []
-    val_accuracies = []
-
-    # for epoch in tqdm(range(num_epochs)):
-    for epoch in range(num_epochs):
-        print(f"----- Epoch {epoch + 1} -----")
-        avg_loss = 0
-        for x, y in train_dl:
-            # forward pass
-            outputs = model(x)
-            bce_loss = model.criterion(outputs, y)
-            kl_loss = model.kl_loss(model)
-            total_loss = bce_loss + 0.1 * kl_loss
-            avg_loss += total_loss.item()
-
-            # backward pass + optimisation
-            model.optimizer.zero_grad()
-            total_loss.backward()
-            model.optimizer.step()
-        
-            model.train()
-        avg_loss /= len(train_dl)
-        losses.append(avg_loss)
-
-        val_loss, val_acc = validation(model, X_val, y_val)
-        val_losses.append(val_loss)
-        val_accuracies.append(val_acc)
-
-    plot_loss(range(num_epochs), losses, val_losses)
-    plot_acc(range(num_epochs), val_accuracies)
-
-
 def train(model, X_train, y_train, X_val, y_val, num_epochs):
-    losses = []
+    train_losses = []
+    train_accuracies = []
     val_losses = []
     val_accuracies = []
 
@@ -99,7 +64,7 @@ def train(model, X_train, y_train, X_val, y_val, num_epochs):
         bce_loss = model.criterion(outputs, y_train)
         kl_loss = model.kl_loss(model)
         total_loss = bce_loss + 0.1 * kl_loss
-        losses.append(total_loss.item())
+        train_losses.append(total_loss.item())
 
         # backward pass + optimisation
         model.optimizer.zero_grad()
@@ -108,23 +73,61 @@ def train(model, X_train, y_train, X_val, y_val, num_epochs):
     
         model.train()
     
-        val_loss, val_acc = validation(model, X_val, y_val)
+        _, train_acc = eval_performance(model, X_train, y_train, "Train")
+        train_accuracies.append(train_acc)
+        val_loss, val_acc = eval_performance(model, X_val, y_val, "Validation")
         val_losses.append(val_loss)
         val_accuracies.append(val_acc)
 
-    plot_loss(range(num_epochs), losses, val_losses)
-    plot_acc(range(num_epochs), val_accuracies)
+    plot_loss(range(num_epochs), train_losses, val_losses)
+    plot_train_val_acc(range(num_epochs), train_accuracies, val_accuracies)
 
 
-def validation(model, x, y):
+def batch_train(model, X_train, y_train, X_val, y_val, num_epochs, batch_size):
+    train_dl = DataLoader(TensorDataset(X_train, y_train), batch_size=batch_size)
+
+    train_losses = []
+    train_accuracies = []
+    val_losses = []
+    val_accuracies = []
+
+    # for epoch in tqdm(range(num_epochs)):
+    for epoch in range(num_epochs):
+        print(f"----- Epoch {epoch + 1} -----")
+        for x, y in train_dl:
+            # forward pass
+            outputs = model(x)
+            bce_loss = model.criterion(outputs, y)
+            kl_loss = model.kl_loss(model)
+            total_loss = bce_loss + 0.1 * kl_loss
+
+            # backward pass + optimisation
+            model.optimizer.zero_grad()
+            total_loss.backward()
+            model.optimizer.step()
+        
+            model.train()
+
+        train_loss, train_acc = eval_performance(model, X_train, y_train, "Train")
+        train_losses.append(train_loss)
+        train_accuracies.append(train_acc)
+
+        val_loss, val_acc = eval_performance(model, X_val, y_val, "Validation")
+        val_losses.append(val_loss)
+        val_accuracies.append(val_acc)
+
+    plot_loss(range(num_epochs), train_losses, val_losses)
+    plot_train_val_acc(range(num_epochs), train_accuracies, val_accuracies)
+
+
+def eval_performance(model, x, y, criterion):
     model.eval()
     with torch.no_grad():
         outputs = model(x)
         pred = (outputs >= 0.5).float()
         loss = model.criterion(pred, y)
         accuracy = accuracy_score(y, pred)
-        print(f"Validation Loss: {loss.item():.4f}")
-        print(f"Validation Accuracy: {accuracy:.2%}")
+        print(f"{criterion} Loss: {loss.item():.4f} | {criterion} Accuracy: {accuracy:.2%}")
     
     return loss.item(), accuracy
 
@@ -159,15 +162,28 @@ def plot_loss(iteration, losses, val_losses):
     plt.xlabel("Iteration")
     plt.ylabel("Validation Loss")
 
-    plt.savefig("bnn_loss.png")
+    plt.savefig("bnn/bnn_train_val_loss.png")
 
 
-def plot_acc(iteration, accuracy):
+def plot_acc(iteration, accuracy, criterion):
     plt.figure(2)
-    plt.plot(iteration, accuracy, label="Validation Accuracy")
+    plt.plot(iteration, accuracy)
+    plt.xlabel("Iteration")
+    plt.ylabel(f"{criterion} Accuracy")
+    plt.savefig("bnn/bnn_accuracy.png")
+
+def plot_train_val_acc(iteration, train_acc, val_acc):
+    plt.figure(2)
+    plt.subplot(211)
+    plt.plot(iteration, train_acc, color='orange')
+    plt.ylabel("Train Accuracy")
+
+    plt.subplot(212)
+    plt.plot(iteration, val_acc)
     plt.xlabel("Iteration")
     plt.ylabel("Validation Accuracy")
-    plt.savefig("bnn_accuracy.png")
+
+    plt.savefig("bnn/bnn_train_val_accuracy.png")
 
 
 if __name__ == '__main__':
