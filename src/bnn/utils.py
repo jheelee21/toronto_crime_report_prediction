@@ -48,16 +48,30 @@ def load_tensor():
     return X_train_tensor, y_train_tensor, X_val_tensor, y_val_tensor, X_test_tensor, y_test_tensor, preprocessor
 
 
-def infer(model, features, preprocessor):
+def infer(model, features, preprocessor, num_samples=100):
     X_df = pd.DataFrame([features])
     X = preprocessor.transform(X_df)
     X_tensor = torch.tensor(X, dtype=torch.float32)
 
     model.eval()
+    predictions = []
+
+    # perform multiple forward passes
     with torch.no_grad():
-        prediction_all = model(X_tensor).item()
-        print(f"Prediction with Features: {prediction_all:.4f}")
-        print(f"Predicted Class: {'High-risk' if prediction_all >= 0.5 else 'Low-risk'}")
+        for _ in range(num_samples):
+            prediction = model(X_tensor).item()
+            predictions.append(prediction)
+
+    # compute mean and standard deviation of predictions
+    predictions_tensor = torch.tensor(predictions)
+    mean_prediction = predictions_tensor.mean().item()
+    std_prediction = predictions_tensor.std().item()
+
+    print(f"Prediction Mean: {mean_prediction:.4f}")
+    print(f"Prediction Std Dev: {std_prediction:.4f}")
+    print(f"Predicted Class: {'High-risk' if mean_prediction >= 0.5 else 'Low-risk'}")
+
+    return mean_prediction, std_prediction
 
 
 def train(model, X_train, y_train, X_val, y_val, num_epochs):
