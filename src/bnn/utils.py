@@ -37,8 +37,6 @@ def load_tensor():
 
     # plot_features(X_train)
 
-    categorical_encoder = preprocessor.named_transformers_['cat']  # Extract the OneHotEncoder
-
     X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
     X_val_tensor = torch.tensor(X_val, dtype=torch.float32)
     X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
@@ -47,7 +45,19 @@ def load_tensor():
     y_val_tensor = torch.tensor(y_val.values, dtype=torch.float32).unsqueeze(1)
     y_test_tensor = torch.tensor(y_test.values, dtype=torch.float32).unsqueeze(1)
 
-    return X_train_tensor, y_train_tensor, X_val_tensor, y_val_tensor, X_test_tensor, y_test_tensor
+    return X_train_tensor, y_train_tensor, X_val_tensor, y_val_tensor, X_test_tensor, y_test_tensor, preprocessor
+
+
+def infer(model, features, preprocessor):
+    X_df = pd.DataFrame([features])
+    X = preprocessor.transform(X_df)
+    X_tensor = torch.tensor(X, dtype=torch.float32)
+
+    model.eval()
+    with torch.no_grad():
+        prediction_all = model(X_tensor).item()
+        print(f"Prediction with Features: {prediction_all:.4f}")
+        print(f"Predicted Class: {'High-risk' if prediction_all >= 0.5 else 'Low-risk'}")
 
 
 def train(model, X_train, y_train, X_val, y_val, num_epochs):
