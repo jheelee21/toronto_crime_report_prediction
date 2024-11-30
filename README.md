@@ -1,6 +1,7 @@
-# Application of Machine-Learning approaches to Crime Type Prediction using Neighbourhood Information and Police Report in Toronto
+# Predicting Crime Risk in Toronto Using Bayesian Neural Networks: A Comparative Analysis with Decision Trees and KDE
 
-For emergency services, whether a reported crime is of high or low risk is a critical piece of information which determines response priority and scale. However, such information may be missing at the time of the initial report. We provide a comparison of different prediction models ranging from widely-used Decision Trees and Naive-Bayes' estimation to a more niche approach using Bayesian Neural Networks (BNN). Results show that the BNN achieves similar performance to Decision Trees and KDE estimation but provides a built-in confidence metric alongside its predictions, as well as being robust to noisy, imbalanced data.
+For emergency services, whether a reported crime is of high or low risk is a critical piece of information which determines response priority and scale. However, such information may be missing at the time of the initial report. We provide a comparison analysis of Decision Trees, Naive Bayes estimation, and Bayesian Neural Networks (BNN). Results show that the BNN achieves similar performance to Decision Trees and Naive Bayes KDE. Despite the lack of performance uplifts, we suggest that a BNN is suitable for our application as it provides a built-in confidence metric alongside its predictions, as well as being robust to noisy, imbalanced data.
+
 Project report can be found [here](docs/report.pdf).
 
 ## Data source
