@@ -34,7 +34,8 @@ for n_estimators in N_estimators:
                 n_estimators=n_estimators,
                 max_depth=max_depth,
                 min_samples_split=min_samples_split,
-                random_state=SEED
+                random_state=SEED,
+                criterion='gini'
             )
             random_forest.fit(X_train, y_train)
 
@@ -61,8 +62,9 @@ print(f"Best model test Accuracy: {best_test_accuracy:.2f} with n_estimators={be
       f"max_depth={best_params['max_depth']}, min_samples_split={best_params['min_samples_split']}")
 
 # evaluate runner-up model on test set
-runnerup_test_predictions = runnerup_model.predict(X_test)
-runnerup_test_predictions = accuracy_score(y_test, runnerup_test_predictions)
-print(f"Runner-up model test Accuracy: {runnerup_test_predictions:.2f} with n_estimators={runnerup_params['n_estimators']}, "
-      f"max_depth={runnerup_params['max_depth']}, min_samples_split={runnerup_params['min_samples_split']}")
+if runnerup_model is not None:
+    runnerup_test_predictions = runnerup_model.predict(X_test)
+    runnerup_test_predictions = accuracy_score(y_test, runnerup_test_predictions)
+    print(f"Runner-up model test Accuracy: {runnerup_test_predictions:.2f} with n_estimators={runnerup_params['n_estimators']}, "
+          f"max_depth={runnerup_params['max_depth']}, min_samples_split={runnerup_params['min_samples_split']}")
 

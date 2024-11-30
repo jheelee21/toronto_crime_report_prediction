@@ -7,8 +7,8 @@ import torchbnn as bnn
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from src.data import *
-from utils import *
+from data import *
+from bayesian_neural_nets.utils_outdated import *
 
 
 EPOCH = 500
@@ -37,6 +37,9 @@ def eval_model(model, X, Y):
         errors.append(((torch.squeeze(y_hat) - torch.squeeze(y))**2).detach().numpy())
     
     rmse = np.sqrt(np.mean(np.concatenate(errors, axis=None)))
+
+    acc = calculate_accuracy(y_hat, y)
+    print('- Accuracy: %f %%' % acc)
     return round(rmse, 3)
 
 
@@ -178,19 +181,19 @@ def compute_predictions(model, X, Y, iterations=20):
 
 
 def main():
-    # baseline_torch_model = BaselineTorch(len(FEATURES), 32)
-    # rmse = eval_model(baseline_torch_model, X_val, y_val)
-    # print(f"untrained RMSE: {rmse:.3f}")
-    # losses = train_model(baseline_torch_model, simple_mse_loss, num_epochs=50)
-    # plt.plot(losses)
+    baseline_torch_model = BaselineTorch(len(FEATURES), 32)
+    rmse = eval_model(baseline_torch_model, X_val, y_val)
+    print(f"untrained RMSE: {rmse:.3f}")
+    losses = train_model(baseline_torch_model, simple_mse_loss, num_epochs=1)
+    plt.plot(losses)
 
     # bnn_torch = BnnTorch(11, 32, torch.nn.functional.relu)
     # losses = train_model(bnn_torch, mse_kl_loss, 200)
     # plt.plot(losses)
 
-    linear_bnn = LinearBnnTorch(len(FEATURES), TARGET_DIM)
-    linear_bnn.train(X_train, y_train, EPOCH)
-    linear_bnn.test(X_val, y_val)
+    # linear_bnn = LinearBnnTorch(len(FEATURES), TARGET_DIM)
+    # linear_bnn.train(X_train, y_train, EPOCH)
+    # linear_bnn.test(X_val, y_val)
 
 
 if __name__ == '__main__':
