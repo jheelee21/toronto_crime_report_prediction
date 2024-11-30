@@ -101,4 +101,3 @@ def _save_df(mci_path, neighbourhood_path, output_path):
 
 if __name__ == '__main__':
     _save_df(MCI_PATH, NEIGHBOURHOOD_PATH, OUTPUT_PATH)
-

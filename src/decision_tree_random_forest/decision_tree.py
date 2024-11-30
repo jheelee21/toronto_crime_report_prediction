@@ -1,16 +1,13 @@
-from src.data import load_data
+from src.data import *
 
-import numpy as np
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
 
 from sklearn.tree import plot_tree
 import matplotlib.pyplot as plt
 
-SEED = 311
-np.random.seed(SEED)
-
 X_train, y_train, X_val, y_val, X_test, y_test = load_data()
+
 
 def grid_search():
     # for grid search
@@ -102,4 +99,6 @@ def main():
     plt.title("Top Two Levels of the Best Decision Tree")
     plt.show()
 
-main()
+
+if __name__ == '__main__':
+    main()

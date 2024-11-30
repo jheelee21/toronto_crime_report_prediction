@@ -35,12 +35,12 @@ def load_tensor():
     X_val = preprocessor.transform(X_val)
     X_test = preprocessor.transform(X_test)
 
+    # normalize features
     for x in [X_train, X_val, X_test]:
         normalize(x, norm='l1')
 
     # plt.hist(X_train)
     # plt.savefig("img/bnn_train.png")
-
     # plot_features(X_train)
 
     X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
@@ -54,43 +54,18 @@ def load_tensor():
     return X_train_tensor, y_train_tensor, X_val_tensor, y_val_tensor, X_test_tensor, y_test_tensor, preprocessor
 
 
-def infer(model, features, preprocessor, num_samples=100):
-    X_df = pd.DataFrame([features])
-    X = preprocessor.transform(X_df)
-    X_tensor = torch.tensor(X, dtype=torch.float32)
-
-    model.eval()
-    predictions = []
-
-    # perform multiple forward passes
-    with torch.no_grad():
-        for _ in range(num_samples):
-            prediction = model(X_tensor).item()
-            predictions.append(prediction)
-
-    # compute mean and standard deviation of predictions
-    predictions_tensor = torch.tensor(predictions)
-    mean_prediction = predictions_tensor.mean().item()
-    std_prediction = predictions_tensor.std().item()
-
-    print(f"Prediction Mean: {mean_prediction:.4f}")
-    print(f"Prediction Std Dev: {std_prediction:.4f}")
-    print(f"Predicted Class: {'High-risk' if mean_prediction >= 0.5 else 'Low-risk'}")
-
-    return mean_prediction, std_prediction
-
-
 def train(model, X_train, y_train, X_val, y_val, num_epochs):
     train_losses = []
     train_accuracies = []
     val_losses = []
     val_accuracies = []
 
-    # for epoch in tqdm(range(num_epochs)):
     for epoch in range(num_epochs):
         print(f"----- Epoch {epoch + 1} -----")
         # forward pass
         outputs = model(X_train)
+
+        # calculate loss
         bce_loss = model.criterion(outputs, y_train)
         kl_loss = model.kl_loss(model)
         total_loss = bce_loss + 0.1 * kl_loss
@@ -105,6 +80,7 @@ def train(model, X_train, y_train, X_val, y_val, num_epochs):
     
         _, train_acc = eval_performance(model, X_train, y_train, "Train", print_val=True)
         train_accuracies.append(train_acc)
+
         val_loss, val_acc = eval_performance(model, X_val, y_val, "Validation", print_val=True)
         val_losses.append(val_loss)
         val_accuracies.append(val_acc)
@@ -121,12 +97,12 @@ def batch_train(model, X_train, y_train, X_val, y_val, num_epochs, batch_size):
     val_losses = []
     val_accuracies = []
 
-    # for epoch in tqdm(range(num_epochs)):
-    for epoch in range(num_epochs):
-        print(f"----- Epoch {epoch + 1} -----")
+    for _ in tqdm(range(num_epochs)):
         for x, y in train_dl:
             # forward pass
             outputs = model(x)
+
+            # calculate loss
             bce_loss = model.criterion(outputs, y)
             kl_loss = model.kl_loss(model)
             total_loss = bce_loss + 0.1 * kl_loss
@@ -138,11 +114,11 @@ def batch_train(model, X_train, y_train, X_val, y_val, num_epochs, batch_size):
         
             model.train()
 
-        train_loss, train_acc = eval_performance(model, X_train, y_train, criterion="Train")
+        train_loss, train_acc = eval_performance(model, X_train, y_train, criterion="Train", print_val=False)
         train_losses.append(train_loss)
         train_accuracies.append(train_acc)
 
-        val_loss, val_acc = eval_performance(model, X_val, y_val, criterion="Validation")
+        val_loss, val_acc = eval_performance(model, X_val, y_val, criterion="Validation", print_val=False)
         val_losses.append(val_loss)
         val_accuracies.append(val_acc)
 
@@ -151,6 +127,7 @@ def batch_train(model, X_train, y_train, X_val, y_val, num_epochs, batch_size):
 
 
 def eval_performance(model, x, y, dataset, print_val=False):
+    # set model to evaluation mode
     model.eval()
     with torch.no_grad():
         outputs = model(x)
@@ -189,14 +166,16 @@ def grid_search(model, search_space, x, y, scoring):
     
     print(f'The best validation score: {results.loc[0, 'score']:.5f}')
     print(f'The best hyperparameters: {results.loc[0, 'params']}')
+
     return results
 
 
-def fit(model, hyperparameters, x, y):
+def fit(model, hyperparameters, x, y, epochs=10):
+    # fit model with hyperparameters for grid search
     for param, value in hyperparameters.items():
         model.__setattr__(param, value)
 
-    for _ in range(10):
+    for _ in range(epochs):
         outputs = model(x)
         bce_loss = model.criterion(outputs, y)
         kl_loss = model.kl_loss(model)
@@ -210,19 +189,6 @@ def fit(model, hyperparameters, x, y):
 
     train_loss, train_acc = eval_performance(model, x, y, "Train", print_val=False)
     return train_loss, train_acc
-
-
-def optimization(model, x, y, scoring='accuracy'):
-    print("Optimizing hyperparameters...")
-    search_space = {
-        "lr": np.arange(0.01, 0.11, 0.02),
-        "prior_sigma": np.arange(0.05, 0.3, 0.05),
-        "prior_mu": np.arange(-0.03, 0.03, 0.01),
-        "kl_weight": np.arange(0.01, 0.5, 0.05)
-    }
-    results = grid_search(model, search_space, x, y, scoring)
-    
-    return results
 
 
 def plot_features(x):
@@ -277,7 +243,3 @@ def plot_train_val_acc(iteration, train_acc, val_acc):
     plt.ylabel("Validation Accuracy")
 
     plt.savefig("img/bnn_train_val_accuracy.png")
-
-
-if __name__ == '__main__':
-    load_tensor()

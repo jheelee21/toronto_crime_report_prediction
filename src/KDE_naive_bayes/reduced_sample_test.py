@@ -1,11 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.model_selection import GridSearchCV
-from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KernelDensity
 from sklearn.metrics import accuracy_score
 
-from src.data import *  # Ensure that you have the correct import path for `load_data`
+from src.data import *
 
 # Sample data function to randomly sample from the dataset
 def sample_data(X, y, sample_size, random_seed=311):
