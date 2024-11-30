@@ -33,6 +33,7 @@ def main():
     train(model, X_train, y_train, X_val, y_val, num_epochs)
     # batch_train(model, X_train, y_train, X_val, y_val, num_epochs, batch_size)
 
+    eval_performance(model, X_test, y_test, dataset='Test', print_val=True)
     # sample input to infer
     new_data_all = {
         'REPORT_YEAR': 2023,
