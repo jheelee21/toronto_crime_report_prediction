@@ -1,4 +1,4 @@
-from numba.cuda import runtime
+from matplotlib import pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 from KDE_naive_bayes.reduced_sample_test import sample_data
 from src.data import *
@@ -29,10 +29,10 @@ def undersample_minority_class(X_train, y_train):
 
     # Compute how many samples are needed to balance
     majority_class_sampled = X_majority[
-        np.random.choice(X_majority.shape[0], len(minority_class), replace=False)]
+        np.random.choice(X_majority.shape[0], X_minority.shape[0], replace=False)]
 
     X_undersampled = np.vstack((majority_class_sampled, X_minority))
-    y_undersampled = np.hstack((np.zeros(len(minority_class)), np.ones(len(minority_class))))
+    y_undersampled = np.hstack((np.zeros(X_minority.shape[0]), np.ones(X_minority.shape[0])))
 
     return X_undersampled, y_undersampled
 
@@ -81,8 +81,8 @@ def fit_geo_kde(X_train, y_train, classes, bandwidth=0.0001):
     kde_models = {}
     for cls in classes:
         X_cls = X_train[y_train == cls][:, [8, 9]]  # Extract only LONG_WGS84 and LAT_WGS84
-        # optimal_bandwidth = kde_with_silverman_bandwidth(X_cls)  # Get optimal bandwidth
-        kde = KernelDensity(kernel='gaussian', bandwidth=0.04)
+        optimal_bandwidth = kde_with_silverman_bandwidth(X_cls)  # Get optimal bandwidth
+        kde = KernelDensity(kernel='gaussian', bandwidth=optimal_bandwidth)
         kde.fit(X_cls)
         kde_models[cls] = kde
     return kde_models
@@ -217,9 +217,9 @@ def evaluate_models(X_train, y_train, X_test, y_test):
     direct_preds = nb_model.predict(X_test)
     direct_acc = accuracy_score(y_test, direct_preds)
 
-    # KDE with Naive Bayes (independent feature-based KDE)
-    independent_preds = kde_naive_bayes(X_train, y_train, X_test, classes, priors, model_type='independent')
-    independent_acc = accuracy_score(y_test, independent_preds)
+    # # KDE with Naive Bayes (independent feature-based KDE)
+    # independent_preds = kde_naive_bayes(X_train, y_train, X_test, classes, priors, model_type='independent')
+    # independent_acc = accuracy_score(y_test, independent_preds)
 
     # KDE with Naive Bayes (geo-based KDE)
     geo_preds = kde_naive_bayes(X_train, y_train, X_test, classes, priors, model_type='geo')
@@ -238,18 +238,44 @@ def evaluate_models(X_train, y_train, X_test, y_test):
     print(f'Runtime: {_runtime:.4f} seconds.')
     # Print results
     print("Direct Naive Bayes Accuracy:", direct_acc)
-    print("KDE-Enhanced Naive Bayes (Independent) Accuracy:", independent_acc)
+    # print("KDE-Enhanced Naive Bayes (Independent) Accuracy:", independent_acc)
     print("KDE-Enhanced Naive Bayes (Geo) Accuracy:", geo_acc)
     print("KDE-Enhanced Naive Bayes (Time) Accuracy:", time_acc)
     print("KDE-Enhanced Naive Bayes (All) Accuracy:", all_acc)
 
 
     print("\nClassification Report (Direct Naive Bayes):\n", classification_report(y_test, direct_preds))
-    print("\nClassification Report (KDE-Enhanced Naive Bayes - Independent):\n",
-          classification_report(y_test, independent_preds))
+    # print("\nClassification Report (KDE-Enhanced Naive Bayes - Independent):\n",
+    #       classification_report(y_test, independent_preds))
     print("\nClassification Report (KDE-Enhanced Naive Bayes - Geo):\n", classification_report(y_test, geo_preds))
     print("\nClassification Report (KDE-Enhanced Naive Bayes - Time):\n", classification_report(y_test, time_preds))
     print("\nClassification Report (KDE-Enhanced Naive Bayes - All):\n", classification_report(y_test, all_preds))
+
+    models = ['Naive Bayes', 'Geo-based KDE', 'Time-based KDE', 'Geo + Time KDE']
+    accuracies = [direct_acc, geo_acc, time_acc, all_acc]
+
+    # Plot the histogram
+    x = np.arange(len(models))  # x positions for bars
+    bar_width = 0.4
+
+    plt.figure(figsize=(8, 5))
+    plt.bar(x, accuracies, bar_width, color=['blue', 'orange', 'green'], alpha=0.7, label='Accuracy')
+
+    # Add labels, title, and grid
+    plt.xticks(x, models)
+    plt.xlabel("KDE Naive Bayes Models")
+    plt.ylabel("Accuracy")
+    plt.title("Accuracy of KDE Naive Bayes Models")
+    plt.ylim(0, 1)  # Accuracy is between 0 and 1
+    plt.grid(axis='y', linestyle='--', alpha=0.6)
+
+    # Annotate bars with accuracy values
+    for i, acc in enumerate(accuracies):
+        plt.text(i, acc + 0.02, f"{acc:.2f}", ha='center', fontsize=10)
+
+    # Show the plot
+    plt.tight_layout()
+    plt.show()
 
 
 if __name__ == '__main__':
@@ -261,13 +287,14 @@ if __name__ == '__main__':
     X_test = scaler.transform(X_test)
     X_val = scaler.transform(X_val)
 
-    X_train_balanced, y_train_balanced = undersample_minority_class(X_train, y_train)
+    # X_train_balanced, y_train_balanced = undersample_minority_class(X_train, y_train)
 
-    # sample_size = 4000
-    # # Sample the training and validation sets
-    # X_train_sample, y_train_sample = sample_data(X_train_balanced, y_train_balanced, sample_size)
-    # X_val_sample, y_val_sample = sample_data(X_val, y_val, sample_size)
-    # X_test_sample, y_test_sample = sample_data(X_test, y_test, sample_size)
+    sample_size = 5000
+    # Sample the training and validation sets
+    X_train_sample, y_train_sample = sample_data(X_train, y_train, sample_size)
+    X_val_sample, y_val_sample = sample_data(X_val, y_val, sample_size)
+    X_test_sample, y_test_sample = sample_data(X_test, y_test, sample_size)
 
-    # evaluate_models(X_train, y_train, X_test, y_test)
-    evaluate_models(X_train_balanced, y_train_balanced, X_test, y_test)
+    evaluate_models(X_train, y_train, X_test, y_test)
+    # evaluate_models(X_train_balanced, y_train_balanced, X_test, y_test)
+    # evaluate_models(X_train_sample, y_train_sample, X_test_sample, y_test_sample)
