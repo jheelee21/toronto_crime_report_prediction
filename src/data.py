@@ -10,7 +10,7 @@ from sklearn.preprocessing import LabelEncoder
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FILE_PATH = os.path.join(BASE_DIR, 'data', 'toronto_crime_data.csv')
 SEED = 311
-np.random.seed(SEED)
+# np.random.seed(SEED)
 
 FEATURES = ['REPORT_YEAR', 'REPORT_MONTH', 'REPORT_DAY', 'REPORT_DOW',
             'REPORT_DOY', 'REPORT_HOUR', 'PREMISES_TYPE', 

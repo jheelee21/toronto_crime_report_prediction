@@ -1,27 +1,28 @@
-from .utils import *
-from .models import *
+from bnn.utils import *
+from bnn.models import *
 
 def main():
     X_train, y_train, X_val, y_val, X_test, y_test, preprocessor = load_tensor()
 
-    num_epochs = 50
-    batch_size = 32
-    params = {
-        "input_dim": X_train.shape[1],
-        "output_dim": 1,
-        "prior_sigma": 0.1,
-        "prior_mu": 0.,
-        "lr": 0.05,
-        "kl_weight": 0.01
-    }
+    num_epochs = 30
+    # batch_size = 32
+
     # params = {
     #     "input_dim": X_train.shape[1],
     #     "output_dim": 1,
-    #     "prior_sigma": 0.15,
+    #     "prior_sigma": 0.1,
     #     "prior_mu": 0.,
     #     "lr": 0.05,
     #     "kl_weight": 0.01
     # }
+    params = {
+        "input_dim": X_train.shape[1],
+        "output_dim": 1,
+        "prior_sigma": 0.15,
+        "prior_mu": 0.,
+        "lr": 0.05,
+        "kl_weight": 0.01
+    }
 
     model = BNN(**params)    
 

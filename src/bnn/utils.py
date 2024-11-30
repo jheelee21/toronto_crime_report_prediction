@@ -39,7 +39,7 @@ def load_tensor():
         normalize(x, norm='l1')
 
     # plt.hist(X_train)
-    # plt.savefig("bnn_train.png")
+    # plt.savefig("img/bnn_train.png")
 
     # plot_features(X_train)
 
@@ -241,7 +241,7 @@ def plot_features(x):
             axis[i, j].set_title(feature)
 
     plt.tight_layout()
-    plt.savefig("bnn_data.png")
+    plt.savefig("img/bnn_data.png")
 
 
 def plot_loss(iteration, losses, val_losses):
@@ -255,7 +255,7 @@ def plot_loss(iteration, losses, val_losses):
     plt.xlabel("Iteration")
     plt.ylabel("Validation Loss")
 
-    plt.savefig("bnn/bnn_train_val_loss.png")
+    plt.savefig("img/bnn_train_val_loss.png")
 
 
 def plot_acc(iteration, accuracy, criterion):
@@ -263,7 +263,7 @@ def plot_acc(iteration, accuracy, criterion):
     plt.plot(iteration, accuracy)
     plt.xlabel("Iteration")
     plt.ylabel(f"{criterion} Accuracy")
-    plt.savefig("bnn/bnn_accuracy.png")
+    plt.savefig("img/bnn_accuracy.png")
 
 def plot_train_val_acc(iteration, train_acc, val_acc):
     plt.figure(2)
@@ -276,7 +276,7 @@ def plot_train_val_acc(iteration, train_acc, val_acc):
     plt.xlabel("Iteration")
     plt.ylabel("Validation Accuracy")
 
-    plt.savefig("bnn/bnn_train_val_accuracy.png")
+    plt.savefig("img/bnn_train_val_accuracy.png")
 
 
 if __name__ == '__main__':
